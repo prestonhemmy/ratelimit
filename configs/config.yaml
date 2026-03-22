@@ -1,0 +1,15 @@
+server:
+  port: 8080
+
+backend:
+  url: "https://httpbin.org"
+
+rate_limit:
+  enabled: true
+  default:
+    requests: 10
+    window_seconds: 60    # 10 requests per minute
+  per_endpoint:
+    - path: "/post"
+      requests: 5
+      window_seconds: 60  # 5 'post' requests per minute
