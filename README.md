@@ -22,14 +22,16 @@ Includes an admin endpoint for viewing live rate limit statistics.
 ### Prerequisites
 
 - Go 1.25+
-
-[//]: # (TODO: Redis version)
-
+- Redis 7+
 - Git
 
 ### Run
 
 ```bash
+# Start Redis
+docker run -d --name redis -p 6379:6379 redis:7-alpine
+
+# Clone and run
 git clone https://github.com/prestonhemmy/ratelimit.git
 cd ratelimit
 go run ./cmd/gateway
