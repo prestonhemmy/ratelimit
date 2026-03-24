@@ -10,7 +10,8 @@ import (
 	"github.com/prestonhemmy/ratelimit/internal/ratelimiter"
 )
 
-// Middleware that calls rate limiter.
+// HTTP middleware that enforces per-IP and per-endpoint rate limiting by
+// delegating to the RateLimiter. Returns code 429 when exceeded.
 
 func RateLimitMiddleware(
 	limiter ratelimiter.RateLimiter,

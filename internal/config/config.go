@@ -7,7 +7,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Config file housing struct definitions and a YAML loader.
+// Defines the gateway configuration schema and loads it from YAML. Includes
+// per-endpoint rate limit rule lookup.
 
 type Config struct {
 	Server struct {

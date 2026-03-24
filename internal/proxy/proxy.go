@@ -8,6 +8,9 @@ import (
 	"net/url"
 )
 
+// Configures a reverse proxy that forwards incoming requests to the configured
+// backend URL.
+
 func NewProxy(targetURL string) http.Handler {
 	target, err := url.Parse(targetURL)
 	if err != nil {
@@ -15,7 +18,7 @@ func NewProxy(targetURL string) http.Handler {
 		return nil
 	}
 
-	fmt.Println("Gateway created")
+	fmt.Println("API Gateway created")
 
 	revProxy := httputil.NewSingleHostReverseProxy(target)
 

@@ -8,14 +8,14 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// File housing rate limiter interface definitions and Redis implementations
-// for fixed and sliding window rate limit strategies
+// Defines the RateLimiter interface and provides two Redis-backed
+// implementations: fixed window and sliding window counters.
 
 type RateLimiter interface {
 	Allow(key string, limit int, window time.Duration) (bool, error)
 }
 
-// Fixed Window Strategy
+// Fixed Window
 
 type FixedWindowLimiter struct {
 	client *redis.Client
@@ -52,7 +52,7 @@ func (l *FixedWindowLimiter) Allow(
 	return cnt <= int64(limit), nil
 }
 
-// Sliding Window Strategy
+// Sliding Window
 
 type SlidingWindowLimiter struct {
 	client *redis.Client

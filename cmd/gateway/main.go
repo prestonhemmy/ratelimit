@@ -13,8 +13,9 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// Entry point that loads config, creates a handler for incoming HTTP requests
-// and starts the server.
+// Entry point for the rate limiting API gateway.
+// Loads config, connects to Redis and starts the HTTP server with middleware
+// chain logging -> rate limiting -> reverse proxy.
 
 func main() {
 	// load config

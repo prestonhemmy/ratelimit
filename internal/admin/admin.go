@@ -12,6 +12,9 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+// Serves the /admin/stats endpoint which reads rate limit counters from Redis
+// and returns a JSON summary of active clients.
+
 type StatusSummary struct {
 	ActiveClients int           `json:"active_clients"`
 	Entries       []StatusEntry `json:"entries"`

@@ -6,6 +6,9 @@ import (
 	"time"
 )
 
+// HTTP middleware that logs each request's status code, latency, client
+// address, method and path.
+
 type ResponseRecorder struct {
 	statusCode int
 	hasWritten bool
@@ -25,10 +28,6 @@ func (r *ResponseRecorder) Write(data []byte) (int, error) {
 
 	return r.ResponseWriter.Write(data)
 }
-
-//func (r *ResponseRecorder) Header() http.Header {
-//	return r.ResponseWriter.Header()
-//}
 
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
