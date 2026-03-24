@@ -2,7 +2,7 @@
 
 A lightweight rate limiting API gateway built in Go with Redis.
 
-[//]: # (TODO: Demo video)
+![Demo](demo/demo.gif)
 
 Sits as a reverse proxy in front of a backend service and enforces per-IP and 
 per-endpoint rate limits using a sliding-window counter stored in Redis.
