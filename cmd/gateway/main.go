@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/prestonhemmy/ratelimit/internal/admin"
 	"github.com/prestonhemmy/ratelimit/internal/config"
 	"github.com/prestonhemmy/ratelimit/internal/middleware"
 	"github.com/prestonhemmy/ratelimit/internal/proxy"
@@ -38,15 +39,17 @@ func main() {
 	revProxy := proxy.NewProxy(cfg.Backend.Url)
 
 	// middleware chain wrapping the proxy
-	handler := middleware.RateLimitMiddleware(limiter, *cfg)(revProxy)
+	handler := middleware.RateLimitMiddleware(limiter, cfg)(revProxy)
 
+	// admin stats endpoint
+	adminHandler := admin.NewAdminHandler(redisClient, cfg)
+	http.Handle("/admin/stats", adminHandler)
+
+	// o.w. handled by rate limiting proxy
 	http.Handle("/", handler)
 
 	// initialize server
-	_, err = fmt.Printf("Starting HTTP server on port %d\n", cfg.Server.Port)
-	if err != nil {
-		log.Fatal(err)
-	}
+	fmt.Printf("Starting HTTP server on port %d\n", cfg.Server.Port)
 
 	addr := fmt.Sprintf(":%d", cfg.Server.Port)
 	if err = http.ListenAndServe(addr, nil); err != nil {

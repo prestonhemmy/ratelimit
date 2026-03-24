@@ -106,7 +106,7 @@ func (l *SlidingWindowLimiter) Allow(
 	// if new window then double expiration time so next window has access
 	// to previous window across the entire window duration
 	if currCount == 1 {
-		if err := l.client.Expire(ctx, key, 2*window).Err(); err != nil {
+		if err := l.client.Expire(ctx, currKey, 2*window).Err(); err != nil {
 			return false, err
 		}
 	}
