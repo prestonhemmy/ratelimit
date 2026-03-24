@@ -84,7 +84,7 @@ rate_limit:
 
 ---
 
-<div style="display: flex; justify-content: center">
+<div align="center">
     <img src="reverse-proxy.png" width="400" alt="Architecture model diagram">
 </div>
 
