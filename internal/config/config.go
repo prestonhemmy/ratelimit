@@ -7,6 +7,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Config file housing struct definitions and a YAML loader.
+
 type Config struct {
 	Server struct {
 		Port int `yaml:"port"`
@@ -46,4 +48,14 @@ func Load(path string) (*Config, error) {
 	}
 
 	return cfg, nil
+}
+
+func (c *Config) RuleForPath(path string) (requests int, windowSeconds int) {
+	for _, cfg := range c.RateLimit.PerEndpoint {
+		if cfg.Path == path {
+			return cfg.Requests, cfg.WindowSeconds
+		}
+	}
+
+	return c.RateLimit.Default.Requests, c.RateLimit.Default.WindowSeconds
 }
