@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/prestonhemmy/ratelimit/internal/config"
 	"github.com/prestonhemmy/ratelimit/internal/middleware"
@@ -23,20 +22,23 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// create reverse proxy
-	revProxy := proxy.NewProxy(cfg.Backend.Url)
-
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",
 		Password: "",
 		DB:       0,
 	})
 
-	// create fixed-window rate limiter
-	limiter := ratelimiter.NewFixedWindowLimiter(redisClient, 10, time.Minute)
+	// create fixed window rate limiter
+	//limiter := ratelimiter.NewFixedWindowLimiter(redisClient)
 
-	// pass limiter to middleware then reverse proxy (Why?)
-	handler := middleware.RateLimitMiddleware(limiter)(revProxy)
+	// create sliding window rate limiter
+	limiter := ratelimiter.NewSlidingWindowLimiter(redisClient)
+
+	// create reverse proxy
+	revProxy := proxy.NewProxy(cfg.Backend.Url)
+
+	// middleware chain wrapping the proxy
+	handler := middleware.RateLimitMiddleware(limiter, *cfg)(revProxy)
 
 	http.Handle("/", handler)
 
