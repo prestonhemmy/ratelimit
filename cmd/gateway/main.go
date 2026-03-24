@@ -38,12 +38,13 @@ func main() {
 	// create reverse proxy
 	revProxy := proxy.NewProxy(cfg.Backend.Url)
 
-	// middleware chain wrapping the proxy
-	handler := middleware.RateLimitMiddleware(limiter, cfg)(revProxy)
+	// middleware chain (logging -> rate limiter -> proxy)
+	rateLimiterHandler := middleware.RateLimitMiddleware(limiter, cfg)(revProxy)
+	handler := middleware.LoggingMiddleware(rateLimiterHandler)
 
-	// admin stats endpoint
+	// admin stats endpoint (logging -> admin
 	adminHandler := admin.NewAdminHandler(redisClient, cfg)
-	http.Handle("/admin/stats", adminHandler)
+	http.Handle("/admin/stats", middleware.LoggingMiddleware(adminHandler))
 
 	// o.w. handled by rate limiting proxy
 	http.Handle("/", handler)
@@ -52,6 +53,12 @@ func main() {
 	fmt.Printf("Starting HTTP server on port %d\n", cfg.Server.Port)
 
 	addr := fmt.Sprintf(":%d", cfg.Server.Port)
+
+	// column titles for log output
+	fmt.Printf(" %-20s %-4s %-14s %-21s %s\n",
+		"TIMESTAMP", "CODE", "LATENCY", "CLIENT", "REQUEST",
+	)
+
 	if err = http.ListenAndServe(addr, nil); err != nil {
 		log.Fatal(err)
 	}
