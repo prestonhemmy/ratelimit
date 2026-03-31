@@ -100,6 +100,80 @@ A separate `/admin/stats` endpoint reads counters from Redis and returns a JSON 
 counts, limits and TTLs.
 
 
+## Docker
+
+### Prerequisites
+
+* Docker (includes Compose)
+
+### Run
+
+```bash
+# Build and start the gateway + Redis
+docker compose up --build
+
+# Test in a separate terminal
+curl http://localhost:8080/get
+curl -s http://localhost:8080/admin/stats | jq .
+```
+
+### Tear down
+
+```bash
+docker compose down
+```
+
+The Dockerfile uses a multi-stage build: the first stage compiles the Go binary inside a full SDK image, and the 
+second stage copies only the binary into a minimal Alpine base. The final image is under 50 MB.
+
+
+## Kubernetes
+
+### Prerequisites
+
+* A local cluster — [minikube](https://minikube.sigs.k8s.io/docs/start/),
+  [kind](https://kind.sigs.k8s.io/), or Docker Desktop with Kubernetes enabled
+* `kubectl`
+
+### Deploy
+
+```bash
+# Start a local cluster (minikube example)
+minikube start
+
+# Point the Docker CLI at minikube's daemon so the built image is
+# available inside the cluster
+eval $(minikube docker-env)
+
+# Build the image
+docker build -t ratelimit-gateway .
+
+# Create all Kubernetes resources
+kubectl apply -f k8s/
+
+# Wait for pods to become ready
+kubectl get pods -w
+```
+
+### Test
+
+```bash
+# Get the externally reachable URL
+minikube service gateway --url
+
+# Use the printed URL in place of localhost:8080
+curl <url>/get
+curl -s <url>/admin/stats | jq .
+```
+
+### Tear down
+
+```bash
+kubectl delete -f k8s/
+minikube stop      # optional — shuts down the cluster VM
+```
+
+
 ## Author
 
 **Preston Hemmy**
