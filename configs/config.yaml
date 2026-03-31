@@ -4,6 +4,9 @@ server:
 backend:
   url: "https://httpbin.org"
 
+redis:
+  addr: "localhost:6379"
+
 rate_limit:
   enabled: true
   default:

@@ -19,6 +19,10 @@ type Config struct {
 		Url string `yaml:"url"`
 	} `yaml:"backend"`
 
+	Redis struct {
+		Addr string `yaml:"addr"`
+	} `yaml:"redis"`
+
 	RateLimit struct {
 		Enabled bool `yaml:"enabled"`
 
