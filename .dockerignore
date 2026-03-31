@@ -1,6 +1,9 @@
 # Binaries
 *.exe
 
+# Kubernetes
+k8s/
+
 # Large/Irrelevant files
 demo/
 scripts/
