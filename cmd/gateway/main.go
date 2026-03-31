@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/prestonhemmy/ratelimit/internal/admin"
 	"github.com/prestonhemmy/ratelimit/internal/config"
@@ -24,8 +25,13 @@ func main() {
 		log.Fatal(err)
 	}
 
+	redisAddr := os.Getenv("REDIS_ADDR")
+	if redisAddr == "" {
+		redisAddr = cfg.Redis.Addr
+	}
+
 	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
+		Addr:     redisAddr,
 		Password: "",
 		DB:       0,
 	})
