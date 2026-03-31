@@ -1,0 +1,11 @@
+# Binaries
+*.exe
+
+# Large/Irrelevant files
+demo/
+scripts/
+README.md
+reverse-proxy.png
+
+# Version control
+.git/
