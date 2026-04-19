@@ -11,6 +11,26 @@ import (
 // Defines the RateLimiter interface and provides two Redis-backed
 // implementations: fixed window and sliding window counters.
 
+var slidingWindowScript = redis.NewScript(`
+	-- GET previous window count
+	local prev = redis.call('GET', KEYS[2])
+	if prev == false then
+		prev = 0
+	else
+		prev = tonumber(prev)
+	end
+	
+	-- INCR current window counter
+	local curr = redis.call('INCR', KEYS[1])
+	
+	-- set expiration if first request in window
+	if curr == 1 then
+		redis.call('EXPIRE', KEYS[1], ARGV[1])
+	end
+	
+	return {prev, curr}
+`)
+
 type RateLimiter interface {
 	Allow(key string, limit int, window time.Duration) (bool, error)
 }
@@ -80,36 +100,17 @@ func (l *SlidingWindowLimiter) Allow(
 	currKey := "ratelimit:" + key + ":" + strconv.Itoa(int(currWindowID))
 	prevKey := "ratelimit:" + key + ":" + strconv.Itoa(int(prevWindowID))
 
-	// pipeline redis commands to reduce latency
-	pipe := l.client.Pipeline()
-	prevCmd := pipe.Get(ctx, prevKey)
-	currCmd := pipe.Incr(ctx, currKey)
-	_, err := pipe.Exec(ctx)
+	// pipeline read-increment-expire sequence to ensure atomicity
+	res, err := slidingWindowScript.Run(
+		ctx, l.client, []string{currKey, prevKey}, int(2*window.Seconds()),
+	).Int64Slice()
 
-	// ignore 'redis.Nil' errors (GET fails on nonexistent prev window)
-	// o.w. validate INCR command
-	if err != nil && err != redis.Nil {
-		if currCmd.Err() != nil {
-			return false, currCmd.Err()
-		}
+	if err != nil {
+		return false, err
 	}
 
-	// extract prev window count if key exists (o.w. defaults to zero)
-	var prevCount int64
-	prevVal, err := prevCmd.Result()
-	if err == nil {
-		prevCount, _ = strconv.ParseInt(prevVal, 10, 64)
-	}
-
-	currCount := currCmd.Val()
-
-	// if new window then double expiration time so next window has access
-	// to previous window across the entire window duration
-	if currCount == 1 {
-		if err := l.client.Expire(ctx, currKey, 2*window).Err(); err != nil {
-			return false, err
-		}
-	}
+	prevCount := res[0]
+	currCount := res[1]
 
 	weightedCount := float64(prevCount)*(1-elapsedFrac) + float64(currCount)
 
